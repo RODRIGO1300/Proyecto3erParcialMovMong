@@ -1,6 +1,6 @@
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { CLUB_THEME } from '../theme/clubTheme';
+import { CLUB_THEME } from '../Theme/ClubTheme';
 
 const EmptyState = ({
   title = 'Sin resultados',

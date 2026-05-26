@@ -3,7 +3,7 @@ import { Alert, FlatList, Image, StyleSheet, Text, TouchableOpacity, View } from
 
 import EmptyState from "../../components/EmptyState";
 import { useOrders } from "../../context/OrdersContext";
-import { CLUB_THEME } from "../../theme/clubTheme";
+import { CLUB_THEME } from "../../Theme/ClubTheme";
 
 const formatPrice = (value) => `$${Number(value || 0).toFixed(2)} USD`;
 const formatDate = (value) =>
@@ -24,8 +24,8 @@ export default function OrderDetailsScreen({ navigation, route }) {
       {
         text: "Eliminar",
         style: "destructive",
-        onPress: async () => {
-          await deleteOrder(orderId);
+        onPress: () => {
+          deleteOrder(orderId);
           navigation.goBack();
         },
       },

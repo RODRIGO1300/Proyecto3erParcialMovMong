@@ -11,7 +11,7 @@ import {
 
 import EmptyState from "../components/EmptyState";
 import { useAuth } from "../context/AuthContext";
-import { CLUB_THEME } from "../theme/clubTheme";
+import { CLUB_THEME } from "../Theme/ClubTheme";
 
 const ADMIN_ROLE = "administrator";
 

@@ -4,62 +4,31 @@ import React, { createContext, useContext, useEffect, useMemo, useState } from "
 import { API_BASE_URL } from "../config/api";
 
 const SESSION_STORAGE_KEY = "@shop_app_session";
-const USERS_URL = `${API_BASE_URL}/users`;
+
+const DEFAULT_USERS = [
+  { id: "1", name: "Alan Castillo", email: "alan@gmail.com", password: "1234" },
+  { id: "2", name: "Rodrigo Hernandez", email: "rodrigo@gmail.com", password: "5678" },
+];
 
 const AuthContext = createContext(null);
-
-const normalizeUser = (user) => ({
-  ...user,
-  id: user.id ?? user._id,
-  role: user.role ?? "cliente",
-});
-
-const requestJson = async (url, options = {}) => {
-  const response = await fetch(url, {
-    headers: {
-      "Content-Type": "application/json",
-      ...(options.headers ?? {}),
-    },
-    ...options,
-  });
-
-  const contentType = response.headers.get("content-type") ?? "";
-  const data = contentType.includes("application/json")
-    ? await response.json()
-    : await response.text();
-
-  if (!response.ok) {
-    const message = typeof data === "string" ? data : data?.message;
-    throw new Error(message || "La operacion no se pudo completar.");
-  }
-
-  return data;
-};
 
 export function AuthProvider({ children }) {
   const [users, setUsers] = useState([]);
   const [currentUser, setCurrentUser] = useState(null);
   const [isReady, setIsReady] = useState(false);
 
-  const loadUsers = async () => {
-    const data = await requestJson(USERS_URL);
-    const normalizedUsers = Array.isArray(data) ? data.map(normalizeUser) : [];
-    setUsers(normalizedUsers);
-    return normalizedUsers;
-  };
-
   useEffect(() => {
     const loadAuthState = async () => {
       try {
-        const [loadedUsers, storedSession] = await Promise.all([
-          loadUsers(),
+        const [storedUsers, storedSession] = await Promise.all([
+          AsyncStorage.getItem(USERS_STORAGE_KEY),
           AsyncStorage.getItem(SESSION_STORAGE_KEY),
         ]);
 
         if (storedSession) {
-          const parsedSession = normalizeUser(JSON.parse(storedSession));
-          const matchedUser = loadedUsers.find((user) => user.id === parsedSession.id);
-          setCurrentUser(matchedUser ?? parsedSession);
+          const parsedSession = JSON.parse(storedSession);
+          const matchedUser = parsedUsers.find((user) => user.id === parsedSession.id);
+          setCurrentUser(matchedUser ?? null);
         }
       } catch (error) {
         setUsers([]);
@@ -73,76 +42,78 @@ export function AuthProvider({ children }) {
   }, []);
 
   const login = async ({ email, password }) => {
-    try {
-      const user = normalizeUser(
-        await requestJson(`${USERS_URL}/login`, {
-          method: "POST",
-          body: JSON.stringify({
-            email: email.trim().toLowerCase(),
-            password: password.trim(),
-          }),
-        })
-      );
+    const normalizedEmail = email.trim().toLowerCase();
+    const userFound = users.find(
+      (user) => user.email.toLowerCase() === normalizedEmail && user.password === password
+    );
 
-      setCurrentUser(user);
-      await AsyncStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(user));
-      await loadUsers();
-
-      return { ok: true, user };
-    } catch (error) {
-      return { ok: false, message: error.message || "Correo o contrasena incorrectos" };
+    if (!userFound) {
+      return { ok: false, message: "Correo o contrasena incorrectos" };
     }
+
+    setCurrentUser(userFound);
+    await AsyncStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(userFound));
+
+    return { ok: true, user: userFound };
   };
 
   const register = async ({ name, email, password }) => {
-    try {
-      const user = normalizeUser(
-        await requestJson(USERS_URL, {
-          method: "POST",
-          body: JSON.stringify({
-            name: name.trim(),
-            email: email.trim().toLowerCase(),
-            password,
-            role: "cliente",
-          }),
-        })
-      );
+    const normalizedEmail = email.trim().toLowerCase();
+    const emailExists = users.some((user) => user.email.toLowerCase() === normalizedEmail);
 
-      await loadUsers();
-      return { ok: true, user };
-    } catch (error) {
-      return { ok: false, message: error.message || "No se pudo registrar el usuario" };
+    if (emailExists) {
+      return { ok: false, message: "Ese correo ya esta en uso" };
     }
+
+    const newUser = {
+      id: Date.now().toString(),
+      name: name.trim(),
+      email: normalizedEmail,
+      password,
+    };
+
+    const nextUsers = [...users, newUser];
+    setUsers(nextUsers);
+    await AsyncStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(nextUsers));
+
+    return { ok: true, user: newUser };
   };
 
   const updateUser = async ({ userId, name, email, password }) => {
-    try {
-      const currentRole = currentUser?.role ?? "cliente";
-      const payload = {
-        name: name.trim(),
-        email: email.trim().toLowerCase(),
-        role: currentRole,
-      };
+    const normalizedEmail = email.trim().toLowerCase();
 
-      if (password?.trim()) {
-        payload.password = password.trim();
-      }
+    const emailExists = users.some(
+      (user) =>
+        user.id !== userId && user.email.toLowerCase() === normalizedEmail
+    );
 
-      const updatedUser = normalizeUser(
-        await requestJson(`${USERS_URL}/${userId}`, {
-          method: "PATCH",
-          body: JSON.stringify(payload),
-        })
-      );
-
-      setCurrentUser(updatedUser);
-      await AsyncStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(updatedUser));
-      await loadUsers();
-
-      return { ok: true, user: updatedUser };
-    } catch (error) {
-      return { ok: false, message: error.message || "No se pudo actualizar el usuario" };
+    if (emailExists) {
+      return { ok: false, message: "Ese correo ya esta en uso" };
     }
+
+    const updatedUsers = users.map((user) =>
+      user.id === userId
+        ? {
+            ...user,
+            name: name.trim(),
+            email: normalizedEmail,
+            password: password?.trim() ? password : user.password,
+          }
+        : user
+    );
+
+    const updatedUser = updatedUsers.find((user) => user.id === userId) ?? null;
+
+    setUsers(updatedUsers);
+    setCurrentUser(updatedUser);
+
+    await AsyncStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(updatedUsers));
+
+    if (updatedUser) {
+      await AsyncStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(updatedUser));
+    }
+
+    return { ok: true, user: updatedUser };
   };
 
   const logout = async () => {

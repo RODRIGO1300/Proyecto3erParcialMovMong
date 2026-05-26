@@ -5,7 +5,7 @@ import EmptyState from "../components/EmptyState";
 import { useAuth } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
 import { useOrders } from "../context/OrdersContext";
-import { CLUB_THEME } from "../theme/clubTheme";
+import { CLUB_THEME } from "../Theme/ClubTheme";
 
 const formatPrice = (value) => `$${Number(value || 0).toFixed(2)} USD`;
 
@@ -44,21 +44,15 @@ export default function CartScreen({ navigation }) {
         total: cartTotal,
       });
 
-      Alert.alert("Compra realizada", "Tu pedido fue procesado correctamente.", [
-        {
-          text: "Aceptar",
-          onPress: () => {
-            clearCart();
-            navigation.navigate("OrdersTab");
-          },
+    Alert.alert("Compra realizada", "Tu pedido fue procesado correctamente.", [
+      {
+        text: "Aceptar",
+        onPress: () => {
+          clearCart();
+          navigation.navigate("OrdersTab");
         },
-      ]);
-    } catch (error) {
-      Alert.alert(
-        "No se pudo procesar",
-        error.message || "El pedido no pudo guardarse en la base de datos."
-      );
-    }
+      },
+    ]);
   };
 
   if (!items.length) {

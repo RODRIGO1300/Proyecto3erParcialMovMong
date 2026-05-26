@@ -3,7 +3,7 @@ import {ActivityIndicator, Alert, Image, RefreshControl, ScrollView, StyleSheet,
 import EmptyState from "../../components/EmptyState";
 import { API_BASE_URL } from "../../config/api";
 import { useCart } from "../../context/CartContext";
-import { CLUB_THEME } from "../../theme/clubTheme";
+import { CLUB_THEME } from "../../Theme/ClubTheme";
 
 const PRODUCTS_URL = `${API_BASE_URL}/products`;
 

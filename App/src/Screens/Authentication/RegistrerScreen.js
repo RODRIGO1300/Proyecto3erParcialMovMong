@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Alert, Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { useAuth } from "../../context/AuthContext";
-import { CLUB_THEME } from "../../theme/clubTheme";
+import { CLUB_THEME } from "../../Theme/ClubTheme";
 
 export default function RegisterScreen({ navigation }) {
   const [name, setName] = useState("");
