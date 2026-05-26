@@ -1,7 +1,7 @@
 import { Platform } from "react-native";
 
 const LOCAL_API_HOST = Platform.select({
-  android: "192.168.1.86",
+  android: "10.86.77.96",
   default: "localhost",
 });
 

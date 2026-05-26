@@ -3,6 +3,10 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { Ionicons } from "@expo/vector-icons";
 
+import AdminHomeScreen from "../Screens/Admin/AdminHomeScreen";
+import CategoriesAdminScreen from "../Screens/Admin/CategoriesAdminScreen";
+import ProductsAdminScreen from "../Screens/Admin/ProductsAdminScreen";
+import UsersAdminScreen from "../Screens/Admin/UsersAdminScreen";
 import CartScreen from "../Screens/CartScreen";
 import OrderDetailsScreen from "../Screens/Orders/OrderDetailsScreen";
 import OrderScreen from "../Screens/Orders/OrderScreen";
@@ -15,6 +19,7 @@ import { CLUB_THEME } from "../theme/clubTheme";
 const Tab = createBottomTabNavigator();
 const ProductStack = createNativeStackNavigator();
 const OrdersStack = createNativeStackNavigator();
+const ProfileStack = createNativeStackNavigator();
 
 function ProductsNavigator() {
   return (
@@ -63,6 +68,46 @@ function OrdersNavigator() {
         options={{ title: "Detalle del pedido" }}
       />
     </OrdersStack.Navigator>
+  );
+}
+
+function ProfileNavigator() {
+  return (
+    <ProfileStack.Navigator
+      screenOptions={{
+        headerTitleAlign: "center",
+        headerTintColor: "#ffffff",
+        headerStyle: {
+          backgroundColor: CLUB_THEME.brandPrimary.blue,
+        },
+      }}
+    >
+      <ProfileStack.Screen
+        name="ProfileHome"
+        component={ProfileScreen}
+        options={{ title: "Perfil" }}
+      />
+      <ProfileStack.Screen
+        name="AdminHome"
+        component={AdminHomeScreen}
+        options={{ title: "Administracion" }}
+      />
+      <ProfileStack.Screen
+        name="AdminProducts"
+        component={ProductsAdminScreen}
+        options={{ title: "CRUD Productos" }}
+      />
+      <ProfileStack.Screen
+        name="AdminCategories"
+        component={CategoriesAdminScreen}
+        options={{ title: "CRUD Categorias" }}
+      />
+      <ProfileStack.Screen
+        name="AdminUsers"
+        component={UsersAdminScreen}
+        options={{ title: "CRUD Usuarios" }}
+      />
+    </ProfileStack.Navigator>
   );
 }
 
@@ -138,9 +183,10 @@ export default function MainTabs() {
       />
       <Tab.Screen
         name="ProfileTab"
-        component={ProfileScreen}
+        component={ProfileNavigator}
         options={{
           title: "Perfil",
+          headerShown: false,
           tabBarLabel: "Perfil",
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons

@@ -13,7 +13,9 @@ import EmptyState from "../components/EmptyState";
 import { useAuth } from "../context/AuthContext";
 import { CLUB_THEME } from "../theme/clubTheme";
 
-export default function ProfileScreen() {
+const ADMIN_ROLE = "administrator";
+
+export default function ProfileScreen({ navigation }) {
   const { currentUser, logout, updateUser } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [name, setName] = useState("");
@@ -69,6 +71,8 @@ export default function ProfileScreen() {
     setIsEditing(false);
   };
 
+  const isAdministrator = currentUser?.role === ADMIN_ROLE;
+
   if (!currentUser) {
     return (
       <EmptyState
@@ -121,6 +125,11 @@ export default function ProfileScreen() {
           )}
         </View>
 
+        <View style={styles.row}>
+          <Text style={styles.label}>Rol</Text>
+          <Text style={styles.value}>{currentUser.role ?? "cliente"}</Text>
+        </View>
+
         {isEditing && (
           <View style={styles.row}>
             <Text style={styles.label}>Nueva contrasena</Text>
@@ -153,6 +162,15 @@ export default function ProfileScreen() {
             >
               <Text style={styles.editButtonText}>Editar datos</Text>
             </TouchableOpacity>
+
+            {isAdministrator && (
+              <TouchableOpacity
+                style={styles.adminButton}
+                onPress={() => navigation.navigate("AdminHome")}
+              >
+                <Text style={styles.adminButtonText}>Administrar CRUD</Text>
+              </TouchableOpacity>
+            )}
 
             <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
               <Text style={styles.logoutButtonText}>Cerrar sesion</Text>
@@ -267,6 +285,19 @@ const styles = StyleSheet.create({
     backgroundColor: CLUB_THEME.brandSecondary.electricBlue,
   },
   editButtonText: {
+    color: "#ffffff",
+    fontSize: 15,
+    fontWeight: "800",
+  },
+  adminButton: {
+    marginTop: 10,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 14,
+    borderRadius: 10,
+    backgroundColor: CLUB_THEME.brandPrimary.blue,
+  },
+  adminButtonText: {
     color: "#ffffff",
     fontSize: 15,
     fontWeight: "800",
