@@ -6,7 +6,7 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import LoginScreen from "../Screens/Authentication/LoginScreen";
 import RegisterScreen from "../Screens/Authentication/RegistrerScreen";
 import { useAuth } from "../context/AuthContext";
-import { CLUB_THEME } from "../theme/clubTheme";
+import { CLUB_THEME } from "../Theme/ClubTheme";
 import MainTabs from "./MainTabs";
 
 const Stack = createNativeStackNavigator();

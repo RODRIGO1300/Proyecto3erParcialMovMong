@@ -10,7 +10,7 @@ import ProfileScreen from "../Screens/ProfileScreen";
 import ProductDetailsScreen from "../Screens/Products/ProductDetailsScreen";
 import ProductListScreen from "../Screens/Products/ProductListScreen";
 import { useCart } from "../context/CartContext";
-import { CLUB_THEME } from "../theme/clubTheme";
+import { CLUB_THEME } from "../Theme/ClubTheme";
 
 const Tab = createBottomTabNavigator();
 const ProductStack = createNativeStackNavigator();

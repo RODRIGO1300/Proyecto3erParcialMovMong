@@ -5,7 +5,7 @@ import EmptyState from "../components/EmptyState";
 import { useAuth } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
 import { useOrders } from "../context/OrdersContext";
-import { CLUB_THEME } from "../theme/clubTheme";
+import { CLUB_THEME } from "../Theme/ClubTheme";
 
 const formatPrice = (value) => `$${Number(value || 0).toFixed(2)} USD`;
 
@@ -21,7 +21,7 @@ export default function CartScreen({ navigation }) {
   const { currentUser } = useAuth();
   const { createOrder } = useOrders();
 
-  const handleCheckout = () => {
+  const handleCheckout = async () => {
     if (!currentUser) {
       Alert.alert("Sesion requerida", "Inicia sesion para completar tu compra.");
       return;
@@ -36,21 +36,25 @@ export default function CartScreen({ navigation }) {
       image: item.image,
     }));
 
-    createOrder({
-      userId: currentUser.id,
-      items: orderItems,
-      total: cartTotal,
-    });
+    try {
+      await createOrder({
+        userId: currentUser.id,
+        items: orderItems,
+        total: cartTotal,
+      });
 
-    Alert.alert("Compra realizada", "Tu pedido fue procesado correctamente.", [
-      {
-        text: "Aceptar",
-        onPress: () => {
-          clearCart();
-          navigation.navigate("OrdersTab");
+      Alert.alert("Compra realizada", "Tu pedido fue procesado correctamente.", [
+        {
+          text: "Aceptar",
+          onPress: () => {
+            clearCart();
+            navigation.navigate("OrdersTab");
+          },
         },
-      },
-    ]);
+      ]);
+    } catch (error) {
+      Alert.alert("Error", error.message || "No se pudo procesar tu compra.");
+    }
   };
 
   if (!items.length) {

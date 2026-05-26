@@ -4,7 +4,7 @@ import EmptyState from "../../components/EmptyState";
 import { API_BASE_URL } from "../../config/api";
 import ProductCard from "../../components/ProductCard";
 import { useCart } from "../../context/CartContext";
-import { CLUB_THEME } from "../../theme/clubTheme";
+import { CLUB_THEME } from "../../Theme/ClubTheme";
 
 const PRODUCTS_URL = `${API_BASE_URL}/products`;
 const LOCAL_PRODUCTS = [

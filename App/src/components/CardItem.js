@@ -1,6 +1,6 @@
 import React from 'react';
 import { Image, Pressable, StyleSheet, Text, TouchableOpacity, View,} from 'react-native';
-import { CLUB_THEME } from '../theme/clubTheme';
+import { CLUB_THEME } from '../Theme/ClubTheme';
 
 const CardItem = ({
   title = 'Producto',

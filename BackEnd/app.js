@@ -28,5 +28,5 @@ mongoose.connect(
 
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`API running on http://localhost:${PORT}`);
-    console.log(`API available on your LAN at http://192.168.1.67:${PORT}`);
+    console.log(`API available on your LAN at http://10.191.226.212:${PORT}`);
 });

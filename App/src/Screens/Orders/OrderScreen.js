@@ -4,7 +4,7 @@ import { Alert, FlatList, StyleSheet, Text, TouchableOpacity, View } from "react
 import EmptyState from "../../components/EmptyState";
 import { useAuth } from "../../context/AuthContext";
 import { useOrders } from "../../context/OrdersContext";
-import { CLUB_THEME } from "../../theme/clubTheme";
+import { CLUB_THEME } from "../../Theme/ClubTheme";
 
 const formatPrice = (value) => `$${Number(value || 0).toFixed(2)} USD`;
 const formatDate = (value) =>
@@ -25,7 +25,13 @@ export default function OrderScreen({ navigation }) {
       {
         text: "Eliminar",
         style: "destructive",
-        onPress: () => deleteOrder(orderId),
+        onPress: async () => {
+          try {
+            await deleteOrder(orderId);
+          } catch (error) {
+            Alert.alert("Error", error.message || "No se pudo eliminar el pedido.");
+          }
+        },
       },
     ]);
   };
