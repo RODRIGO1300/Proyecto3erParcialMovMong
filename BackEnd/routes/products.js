@@ -48,7 +48,7 @@ router.post('/', (req, res) => {
       res.json(data);
     })
     .catch((e) => {
-      res.json({ message: e.message });
+      res.status(400).json({ message: e.message });
     });
 });
 
@@ -72,20 +72,26 @@ router.patch('/:id', (req, res) => {
     }
   )
     .then((data) => {
+      if (!data.matchedCount) {
+        return res.status(404).json({ message: 'Producto no encontrado' });
+      }
       res.json(data);
     })
     .catch((e) => {
-      res.json({ message: e.message });
+      res.status(400).json({ message: e.message });
     });
 });
 
 router.delete('/:id', (req, res) => {
   Product.deleteOne({ _id: req.params.id })
     .then((data) => {
+      if (!data.deletedCount) {
+        return res.status(404).json({ message: 'Producto no encontrado' });
+      }
       res.json(data);
     })
     .catch((e) => {
-      res.json({ message: e.message });
+      res.status(400).json({ message: e.message });
     });
 });
 
