@@ -16,7 +16,7 @@ import {
 
 import EmptyState from "../../components/EmptyState";
 import { API_BASE_URL } from "../../config/api";
-import { CLUB_THEME } from "../../theme/clubTheme";
+import { CLUB_THEME } from "../../Theme/ClubTheme";
 
 const getItemId = (item) => item?._id ?? item?.id;
 

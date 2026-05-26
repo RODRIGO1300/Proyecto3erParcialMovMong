@@ -1,124 +1,135 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
-
 import { API_BASE_URL } from "../config/api";
 
-const SESSION_STORAGE_KEY = "@shop_app_session";
-
-const DEFAULT_USERS = [
-  { id: "1", name: "Alan Castillo", email: "alan@gmail.com", password: "1234" },
-  { id: "2", name: "Rodrigo Hernandez", email: "rodrigo@gmail.com", password: "5678" },
-];
+const USERS_URL = `${API_BASE_URL}/users`;
 
 const AuthContext = createContext(null);
+
+const normalizeUser = (user) => {
+  if (!user) {
+    return null;
+  }
+
+  return {
+    ...user,
+    id: String(user.id ?? user._id ?? ""),
+  };
+};
 
 export function AuthProvider({ children }) {
   const [users, setUsers] = useState([]);
   const [currentUser, setCurrentUser] = useState(null);
-  const [isReady, setIsReady] = useState(false);
+  const [isReady, setIsReady] = useState(true);
+
+  const refreshUsers = async () => {
+    try {
+      const response = await fetch(USERS_URL);
+      if (!response.ok) {
+        return [];
+      }
+
+      const data = await response.json();
+      const normalizedUsers = Array.isArray(data) ? data.map(normalizeUser) : [];
+      setUsers(normalizedUsers);
+      return normalizedUsers;
+    } catch (error) {
+      return [];
+    }
+  };
 
   useEffect(() => {
-    const loadAuthState = async () => {
-      try {
-        const [storedUsers, storedSession] = await Promise.all([
-          AsyncStorage.getItem(USERS_STORAGE_KEY),
-          AsyncStorage.getItem(SESSION_STORAGE_KEY),
-        ]);
-
-        if (storedSession) {
-          const parsedSession = JSON.parse(storedSession);
-          const matchedUser = parsedUsers.find((user) => user.id === parsedSession.id);
-          setCurrentUser(matchedUser ?? null);
-        }
-      } catch (error) {
-        setUsers([]);
-        setCurrentUser(null);
-      } finally {
-        setIsReady(true);
-      }
-    };
-
-    loadAuthState();
+    refreshUsers();
   }, []);
 
   const login = async ({ email, password }) => {
-    const normalizedEmail = email.trim().toLowerCase();
-    const userFound = users.find(
-      (user) => user.email.toLowerCase() === normalizedEmail && user.password === password
-    );
+    try {
+      const response = await fetch(`${USERS_URL}/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: email.trim().toLowerCase(),
+          password: password.trim(),
+        }),
+      });
 
-    if (!userFound) {
-      return { ok: false, message: "Correo o contrasena incorrectos" };
+      const data = await response.json();
+      if (!response.ok) {
+        return { ok: false, message: data?.message ?? "Correo o contrasena incorrectos" };
+      }
+
+      const normalizedUser = normalizeUser(data);
+      setCurrentUser(normalizedUser);
+      return { ok: true, user: normalizedUser };
+    } catch (error) {
+      return { ok: false, message: "No se pudo conectar con el servidor" };
     }
-
-    setCurrentUser(userFound);
-    await AsyncStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(userFound));
-
-    return { ok: true, user: userFound };
   };
 
   const register = async ({ name, email, password }) => {
-    const normalizedEmail = email.trim().toLowerCase();
-    const emailExists = users.some((user) => user.email.toLowerCase() === normalizedEmail);
+    try {
+      const response = await fetch(USERS_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: name.trim(),
+          email: email.trim().toLowerCase(),
+          password: password.trim(),
+          role: "customer",
+        }),
+      });
 
-    if (emailExists) {
-      return { ok: false, message: "Ese correo ya esta en uso" };
+      const data = await response.json();
+      if (!response.ok || data?.message) {
+        return { ok: false, message: data?.message ?? "No se pudo registrar el usuario" };
+      }
+
+      const normalizedUser = normalizeUser(data);
+      setUsers((currentUsers) => [normalizedUser, ...currentUsers]);
+      return { ok: true, user: normalizedUser };
+    } catch (error) {
+      return { ok: false, message: "No se pudo conectar con el servidor" };
     }
-
-    const newUser = {
-      id: Date.now().toString(),
-      name: name.trim(),
-      email: normalizedEmail,
-      password,
-    };
-
-    const nextUsers = [...users, newUser];
-    setUsers(nextUsers);
-    await AsyncStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(nextUsers));
-
-    return { ok: true, user: newUser };
   };
 
   const updateUser = async ({ userId, name, email, password }) => {
-    const normalizedEmail = email.trim().toLowerCase();
+    try {
+      const userToUpdate = users.find((user) => user.id === userId) ?? currentUser;
 
-    const emailExists = users.some(
-      (user) =>
-        user.id !== userId && user.email.toLowerCase() === normalizedEmail
-    );
+      const response = await fetch(`${USERS_URL}/${userId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: name.trim(),
+          email: email.trim().toLowerCase(),
+          password: password?.trim() ? password.trim() : userToUpdate?.password ?? "",
+          role: userToUpdate?.role ?? "customer",
+        }),
+      });
 
-    if (emailExists) {
-      return { ok: false, message: "Ese correo ya esta en uso" };
+      const data = await response.json();
+      if (!response.ok || data?.message) {
+        return { ok: false, message: data?.message ?? "No se pudo actualizar el perfil" };
+      }
+
+      const refreshedUsers = await refreshUsers();
+      const updatedUser =
+        refreshedUsers.find((user) => user.id === userId) ??
+        normalizeUser({
+          ...userToUpdate,
+          name: name.trim(),
+          email: email.trim().toLowerCase(),
+          password: password?.trim() ? password.trim() : userToUpdate?.password,
+        });
+
+      setCurrentUser(updatedUser);
+      return { ok: true, user: updatedUser };
+    } catch (error) {
+      return { ok: false, message: "No se pudo conectar con el servidor" };
     }
-
-    const updatedUsers = users.map((user) =>
-      user.id === userId
-        ? {
-            ...user,
-            name: name.trim(),
-            email: normalizedEmail,
-            password: password?.trim() ? password : user.password,
-          }
-        : user
-    );
-
-    const updatedUser = updatedUsers.find((user) => user.id === userId) ?? null;
-
-    setUsers(updatedUsers);
-    setCurrentUser(updatedUser);
-
-    await AsyncStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(updatedUsers));
-
-    if (updatedUser) {
-      await AsyncStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(updatedUser));
-    }
-
-    return { ok: true, user: updatedUser };
   };
 
   const logout = async () => {
     setCurrentUser(null);
-    await AsyncStorage.removeItem(SESSION_STORAGE_KEY);
   };
 
   const value = useMemo(
@@ -130,7 +141,7 @@ export function AuthProvider({ children }) {
       register,
       updateUser,
       logout,
-      refreshUsers: loadUsers,
+      refreshUsers,
     }),
     [users, currentUser, isReady]
   );

@@ -43,16 +43,18 @@ export default function CartScreen({ navigation }) {
         items: orderItems,
         total: cartTotal,
       });
-
-    Alert.alert("Compra realizada", "Tu pedido fue procesado correctamente.", [
-      {
-        text: "Aceptar",
-        onPress: () => {
-          clearCart();
-          navigation.navigate("OrdersTab");
+      Alert.alert("Compra realizada", "Tu pedido fue procesado correctamente.", [
+        {
+          text: "Aceptar",
+          onPress: () => {
+            clearCart();
+            navigation.navigate("OrdersTab");
+          },
         },
-      },
-    ]);
+      ]);
+    } catch (error) {
+      Alert.alert("Error", "No se pudo completar la compra.");
+    }
   };
 
   if (!items.length) {
