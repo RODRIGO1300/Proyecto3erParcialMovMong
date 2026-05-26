@@ -11,7 +11,7 @@ import {
 
 import EmptyState from "../components/EmptyState";
 import { useAuth } from "../context/AuthContext";
-import { CLUB_THEME } from "../ClubTheme/clubTheme";
+import { CLUB_THEME } from "../theme/clubTheme";
 
 export default function ProfileScreen() {
   const { currentUser, logout, updateUser } = useAuth();

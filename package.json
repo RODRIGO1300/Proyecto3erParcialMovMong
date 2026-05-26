@@ -4,8 +4,14 @@
   "private": true,
   "scripts": {
     "start": "npm --prefix BackEnd start",
+    "app:start": "npm --prefix App start",
+    "app:android": "npm --prefix App run android",
+    "app:web": "npm --prefix App run web",
     "backend:start": "npm --prefix BackEnd start",
     "backend:dev": "npm --prefix BackEnd run dev",
     "api:products": "node BackEnd/scripts/check-products-api.js"
+  },
+  "dependencies": {
+    "expo": "^56.0.4"
   }
 }

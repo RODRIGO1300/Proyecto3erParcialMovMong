@@ -1,0 +1,28 @@
+{
+  "expo": {
+    "name": "Shop App",
+    "slug": "shop-app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./src/images/Icono.png",
+    "userInterfaceStyle": "light",
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./src/images/Icono.png",
+        "backgroundColor": "#004D98"
+      }
+    },
+    "web": {
+      "favicon": "./src/images/Icono.png"
+    },
+    "plugins": [
+      "expo-font"
+    ]
+  }
+}
