@@ -13,6 +13,31 @@ router.get('/', (req, res) => {
     });
 });
 
+router.post('/login', (req, res) => {
+  const email = req.body.email?.trim().toLowerCase();
+  const password = req.body.password?.trim();
+
+  console.log(`Login attempt for ${email || 'empty email'}`);
+
+  if (!email || !password) {
+    return res.status(400).json({ message: 'Email y password son requeridos' });
+  }
+
+  User.findOne({ email, password })
+    .then((user) => {
+      if (!user) {
+        console.log(`Login failed for ${email}`);
+        return res.status(401).json({ message: 'Correo o contrasena incorrectos' });
+      }
+
+      console.log(`Login success for ${email}`);
+      res.json(user);
+    })
+    .catch((err) => {
+      res.status(400).json({ message: 'Error: ' + err });
+    });
+});
+
 router.post('/', (req, res) => {
   const user = new User({
     name: req.body.name,

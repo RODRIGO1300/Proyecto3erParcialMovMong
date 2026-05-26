@@ -19,7 +19,7 @@ const OrderSchema = new mongoose.Schema(
     total: { type: Number, required: true },
     items: { type: [OrderItemSchema], required: true }
   },
-  { collection: 'Orders' }
+  { collection: 'Orders', timestamps: true }
 );
 
 module.exports = mongoose.model('Order', OrderSchema);

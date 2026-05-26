@@ -17,11 +17,16 @@ app.use('/api/products', products);
 app.use('/api/categories', categories);
 app.use('/api/orders', orders);
 
+app.get('/api/health', (req, res) => {
+    res.json({ ok: true, message: 'API available' });
+});
+
 mongoose.connect(
     'mongodb+srv://fixer130404_db_user:2016J711%23rjha@damm20260.g5fr0ls.mongodb.net/FinalProyect?retryWrites=true&w=majority&appName=damm20260')
     .then(() => console.log('MongoDB connected'))
     .catch(err => console.log('Failed to connect to MongoDB: ' + err));
 
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
     console.log(`API running on http://localhost:${PORT}`);
+    console.log(`API available on your LAN at http://192.168.1.67:${PORT}`);
 });
