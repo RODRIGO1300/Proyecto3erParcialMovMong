@@ -8,6 +8,7 @@ const categories = require('./routes/categories');
 const orders = require('./routes/orders');
 
 const app = express();
+const PORT = process.env.PORT || 4000;
 
 app.use(cors());
 app.use(bodyParser.json());
@@ -21,4 +22,6 @@ mongoose.connect(
     .then(() => console.log('MongoDB connected'))
     .catch(err => console.log('Failed to connect to MongoDB: ' + err));
 
-app.listen(4000);
+app.listen(PORT, () => {
+    console.log(`API running on http://localhost:${PORT}`);
+});

@@ -1,0 +1,11 @@
+{
+  "name": "proyecto3erparcialmovmong",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "npm --prefix BackEnd start",
+    "backend:start": "npm --prefix BackEnd start",
+    "backend:dev": "npm --prefix BackEnd run dev",
+    "api:products": "node BackEnd/scripts/check-products-api.js"
+  }
+}

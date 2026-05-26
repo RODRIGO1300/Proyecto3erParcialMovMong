@@ -1,16 +1,26 @@
 import React, { useCallback, useEffect, useLayoutEffect, useState } from "react";
 import {ActivityIndicator, Alert, Image, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View,} from "react-native";
 import EmptyState from "../../components/EmptyState";
+import { API_BASE_URL } from "../../config/api";
 import { useCart } from "../../context/CartContext";
 import { CLUB_THEME } from "../../theme/clubTheme";
 
-const PRODUCTS_URL = "https://fakestoreapi.com/products";
+const PRODUCTS_URL = `${API_BASE_URL}/products`;
 
 const formatPrice = (value) => {
   const numericValue = Number(value);
   if (Number.isNaN(numericValue)) return "$0.00";
   return `$${numericValue.toFixed(2)} USD`;
 };
+
+const normalizeProduct = (product) => ({
+  ...product,
+  id: product.id ?? product._id,
+  rating: {
+    rate: product.rating?.rate ?? 0,
+    count: product.rating?.count ?? 0,
+  },
+});
 
 export default function ProductDetailsScreen({ navigation, route }) {
   const [product, setProduct] = useState(null);
@@ -19,7 +29,7 @@ export default function ProductDetailsScreen({ navigation, route }) {
   const [errorMessage, setErrorMessage] = useState("");
   const { addToCart, cartCount } = useCart();
   const routeProduct = route?.params?.product;
-  const productId = Number(route?.params?.productId ?? route?.params?.id);
+  const productId = route?.params?.productId ?? route?.params?.id;
 
   const loadProduct = useCallback(
     async (showLoader = true) => {
@@ -28,11 +38,11 @@ export default function ProductDetailsScreen({ navigation, route }) {
         setErrorMessage("");
 
         if (routeProduct) {
-          setProduct(routeProduct);
+          setProduct(normalizeProduct(routeProduct));
           return;
         }
 
-        const endpoint = Number.isFinite(productId)
+        const endpoint = productId
           ? `${PRODUCTS_URL}/${productId}`
           : PRODUCTS_URL;
         const response = await fetch(endpoint);
@@ -46,7 +56,7 @@ export default function ProductDetailsScreen({ navigation, route }) {
           throw new Error("No se encontro el producto solicitado.");
         }
 
-        setProduct(selectedProduct);
+        setProduct(normalizeProduct(selectedProduct));
       } catch (error) {
         setErrorMessage(error.message || "Error inesperado al cargar el producto.");
       } finally {

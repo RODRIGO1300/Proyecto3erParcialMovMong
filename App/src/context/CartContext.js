@@ -5,7 +5,7 @@ const CartContext = createContext(null);
 const CART_STORAGE_KEY = "@shop_app_cart";
 
 const normalizeProduct = (product) => ({
-  id: product.id,
+  id: product.id ?? product._id,
   title: product.title ?? product.name ?? "Producto",
   price: Number(product.price ?? 0),
   image: product.image,

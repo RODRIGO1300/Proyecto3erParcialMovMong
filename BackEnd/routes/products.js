@@ -13,6 +13,20 @@ router.get('/', (req, res) => {
     });
 });
 
+router.get('/:id', (req, res) => {
+  Product.findById(req.params.id)
+    .then((product) => {
+      if (!product) {
+        return res.status(404).json({ message: 'Producto no encontrado' });
+      }
+
+      res.json(product);
+    })
+    .catch((err) => {
+      res.status(400).json({ message: 'Error: ' + err });
+    });
+});
+
 router.post('/', (req, res) => {
   const product = new Product({
     title: req.body.title,

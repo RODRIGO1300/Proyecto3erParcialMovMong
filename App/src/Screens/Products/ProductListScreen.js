@@ -1,11 +1,12 @@
 import React, { useCallback, useEffect, useLayoutEffect, useState } from "react";
 import {ActivityIndicator, Alert, FlatList, RefreshControl, StyleSheet, Text, TouchableOpacity, View,} from "react-native";
 import EmptyState from "../../components/EmptyState";
+import { API_BASE_URL } from "../../config/api";
 import ProductCard from "../../components/ProductCard";
 import { useCart } from "../../context/CartContext";
 import { CLUB_THEME } from "../../theme/clubTheme";
 
-const PRODUCTS_URL = "https://fakestoreapi.com/products";
+const PRODUCTS_URL = `${API_BASE_URL}/products`;
 const LOCAL_PRODUCTS = [
   {
     id: "local-1",
@@ -63,6 +64,15 @@ const formatPrice = (value) => {
   return `$${numericValue.toFixed(2)} USD`;
 };
 
+const normalizeProduct = (product) => ({
+  ...product,
+  id: product.id ?? product._id,
+  rating: {
+    rate: product.rating?.rate ?? 0,
+    count: product.rating?.count ?? 0,
+  },
+});
+
 export default function ProductListScreen({ navigation }) {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -85,7 +95,7 @@ export default function ProductListScreen({ navigation }) {
         throw new Error("Formato de datos Erroneo.");
       }
 
-      setProducts([...LOCAL_PRODUCTS, ...data]);
+      setProducts(data.map(normalizeProduct));
     } catch (error) {
       setErrorMessage(error.message || "Error desconocido al obtener productos.");
       setProducts(LOCAL_PRODUCTS);
