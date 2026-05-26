@@ -1,8 +1,6 @@
-import "react-native-gesture-handler";
-
 import React from "react";
 import { StatusBar } from "expo-status-bar";
-import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import NavigationStack from "./src/Navigation/NavigationStack";
@@ -12,7 +10,7 @@ import { OrdersProvider } from "./src/context/OrdersContext";
 
 export default function App() {
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
+    <View style={{ flex: 1 }}>
       <SafeAreaProvider>
         <AuthProvider>
           <CartProvider>
@@ -23,6 +21,6 @@ export default function App() {
           </CartProvider>
         </AuthProvider>
       </SafeAreaProvider>
-    </GestureHandlerRootView>
+    </View>
   );
 }
