@@ -1,5 +1,5 @@
-import React from "react";
-import { Alert, FlatList, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import React, { useState } from "react";
+import { Alert, FlatList, RefreshControl, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 import EmptyState from "../../components/EmptyState";
 import { useAuth } from "../../context/AuthContext";
@@ -14,8 +14,9 @@ const formatDate = (value) =>
   });
 
 export default function OrderScreen({ navigation }) {
+  const [refreshing, setRefreshing] = useState(false);
   const { currentUser } = useAuth();
-  const { getOrdersByUser, deleteOrder } = useOrders();
+  const { getOrdersByUser, deleteOrder, refreshOrders } = useOrders();
 
   const orders = currentUser ? getOrdersByUser(currentUser.id) : [];
 
@@ -25,15 +26,15 @@ export default function OrderScreen({ navigation }) {
       {
         text: "Eliminar",
         style: "destructive",
-        onPress: async () => {
-          try {
-            await deleteOrder(orderId);
-          } catch (error) {
-            Alert.alert("Error", error.message || "No se pudo eliminar el pedido.");
-          }
-        },
+        onPress: () => deleteOrder(orderId),
       },
     ]);
+  };
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await refreshOrders(currentUser?.id);
+    setRefreshing(false);
   };
 
   const renderOrder = ({ item }) => (
@@ -82,6 +83,14 @@ export default function OrderScreen({ navigation }) {
         keyExtractor={(item) => item.id}
         renderItem={renderOrder}
         contentContainerStyle={styles.listContent}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            colors={[CLUB_THEME.brandPrimary.blue, CLUB_THEME.brandPrimary.garnet]}
+            tintColor={CLUB_THEME.brandPrimary.blue}
+          />
+        }
       />
     </View>
   );

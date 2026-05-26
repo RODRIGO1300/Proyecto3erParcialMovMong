@@ -28,7 +28,8 @@ export default function CartScreen({ navigation }) {
     }
 
     const orderItems = items.map((item) => ({
-      id: item.id,
+      id: String(item.id),
+      productId: String(item.id),
       title: item.title,
       category: item.category,
       price: item.price,
@@ -43,18 +44,15 @@ export default function CartScreen({ navigation }) {
         total: cartTotal,
       });
 
-      Alert.alert("Compra realizada", "Tu pedido fue procesado correctamente.", [
-        {
-          text: "Aceptar",
-          onPress: () => {
-            clearCart();
-            navigation.navigate("OrdersTab");
-          },
+    Alert.alert("Compra realizada", "Tu pedido fue procesado correctamente.", [
+      {
+        text: "Aceptar",
+        onPress: () => {
+          clearCart();
+          navigation.navigate("OrdersTab");
         },
-      ]);
-    } catch (error) {
-      Alert.alert("Error", error.message || "No se pudo procesar tu compra.");
-    }
+      },
+    ]);
   };
 
   if (!items.length) {

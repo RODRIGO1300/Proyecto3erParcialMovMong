@@ -24,13 +24,9 @@ export default function OrderDetailsScreen({ navigation, route }) {
       {
         text: "Eliminar",
         style: "destructive",
-        onPress: async () => {
-          try {
-            await deleteOrder(orderId);
-            navigation.goBack();
-          } catch (error) {
-            Alert.alert("Error", error.message || "No se pudo eliminar el pedido.");
-          }
+        onPress: () => {
+          deleteOrder(orderId);
+          navigation.goBack();
         },
       },
     ]);

@@ -1,26 +1,11 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
 
-import { API_BASE_URL } from "../config/api";
+const ORDERS_STORAGE_KEY = "@shop_app_orders";
 
 const OrdersContext = createContext(null);
 
-const normalizeOrder = (order) => ({
-  ...order,
-  id: order.id ?? order._id,
-  createdAt: order.createdAt ?? order.updatedAt ?? new Date().toISOString(),
-  items: (order.items ?? []).map((item) => ({
-    ...item,
-    id: item.id ?? item.productId,
-    productId: item.productId ?? item.id,
-  })),
-});
-
-const getUserId = (value) => {
-  if (!value) return "";
-  return typeof value === "object" ? value._id ?? value.id ?? String(value) : String(value);
-};
-
 export function OrdersProvider({ children }) {
+  const { currentUser } = useAuth();
   const [orders, setOrders] = useState([]);
   const [isReady, setIsReady] = useState(false);
 
@@ -40,7 +25,10 @@ export function OrdersProvider({ children }) {
   useEffect(() => {
     const loadOrders = async () => {
       try {
-        await fetchOrders();
+        const storedOrders = await AsyncStorage.getItem(ORDERS_STORAGE_KEY);
+        if (storedOrders) {
+          setOrders(JSON.parse(storedOrders));
+        }
       } catch (error) {
         setOrders([]);
       } finally {
@@ -48,55 +36,42 @@ export function OrdersProvider({ children }) {
       }
     };
 
-    loadOrders();
-  }, []);
+    const data = await requestJson(`${ORDERS_URL}?userId=${encodeURIComponent(userId)}`);
+    const normalizedOrders = Array.isArray(data) ? data.map(normalizeOrder) : [];
+    setOrders(normalizedOrders);
+    setIsReady(true);
+    return normalizedOrders;
+  };
 
-  const createOrder = async ({ userId, items, total }) => {
-    const payload = {
-      userId,
-      status: "completed",
-      paymentMethod: "credit card",
-      shippingAddress: "Leon, Guanajuato, Mexico",
-      total,
-      items: items.map((item) => ({
-        productId: item.productId ?? item.id,
-        title: item.title,
-        price: item.price,
-        quantity: item.quantity,
-      })),
-    };
-
-    const response = await fetch(`${API_BASE_URL}/orders`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-
-    if (!response.ok) {
-      throw new Error("No se pudo crear el pedido");
+  useEffect(() => {
+    if (!isReady) {
+      return;
     }
 
-    const newOrder = normalizeOrder(await response.json());
+    AsyncStorage.setItem(ORDERS_STORAGE_KEY, JSON.stringify(orders));
+  }, [isReady, orders]);
+
+  const createOrder = ({ userId, items, total }) => {
+    const newOrder = {
+      id: `ORD-${Date.now()}`,
+      userId,
+      createdAt: new Date().toISOString(),
+      total,
+      items,
+    };
+
     setOrders((currentOrders) => [newOrder, ...currentOrders]);
     return newOrder;
   };
 
-  const deleteOrder = async (orderId) => {
-    const response = await fetch(`${API_BASE_URL}/orders/${orderId}`, {
-      method: "DELETE",
-    });
-
-    if (!response.ok) {
-      throw new Error("No se pudo eliminar el pedido");
-    }
-
+  const deleteOrder = (orderId) => {
     setOrders((currentOrders) =>
       currentOrders.filter((order) => order.id !== orderId)
     );
   };
 
   const getOrdersByUser = (userId) =>
-    orders.filter((order) => getUserId(order.userId) === String(userId));
+    orders.filter((order) => order.userId === userId);
 
   const value = useMemo(
     () => ({
@@ -105,9 +80,8 @@ export function OrdersProvider({ children }) {
       createOrder,
       deleteOrder,
       getOrdersByUser,
-      refreshOrders: fetchOrders,
     }),
-    [orders, isReady]
+    [orders, isReady, currentUser?.id]
   );
 
   return <OrdersContext.Provider value={value}>{children}</OrdersContext.Provider>;
