@@ -4,7 +4,9 @@ const router = express.Router();
 const Order = require('../models/order');
 
 router.get('/', (req, res) => {
-  Order.find()
+  const filter = req.query.userId ? { userId: req.query.userId } : {};
+
+  Order.find(filter).sort({ createdAt: -1 })
     .then((orders) => {
       res.json(orders);
     })
@@ -16,9 +18,9 @@ router.get('/', (req, res) => {
 router.post('/', (req, res) => {
   const order = new Order({
     userId: req.body.userId,
-    status: req.body.status,
-    paymentMethod: req.body.paymentMethod,
-    shippingAddress: req.body.shippingAddress,
+    status: req.body.status || 'procesado',
+    paymentMethod: req.body.paymentMethod || 'tarjeta',
+    shippingAddress: req.body.shippingAddress || 'Entrega digital / mostrador',
     total: req.body.total,
     items: req.body.items
   });
@@ -29,7 +31,7 @@ router.post('/', (req, res) => {
       res.json(data);
     })
     .catch((e) => {
-      res.json({ message: e.message });
+      res.status(400).json({ message: e.message });
     });
 });
 
@@ -51,7 +53,7 @@ router.patch('/:id', (req, res) => {
       res.json(data);
     })
     .catch((e) => {
-      res.json({ message: e.message });
+      res.status(400).json({ message: e.message });
     });
 });
 
@@ -61,7 +63,7 @@ router.delete('/:id', (req, res) => {
       res.json(data);
     })
     .catch((e) => {
-      res.json({ message: e.message });
+      res.status(400).json({ message: e.message });
     });
 });
 

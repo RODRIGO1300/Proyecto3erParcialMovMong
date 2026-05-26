@@ -21,14 +21,15 @@ export default function CartScreen({ navigation }) {
   const { currentUser } = useAuth();
   const { createOrder } = useOrders();
 
-  const handleCheckout = () => {
+  const handleCheckout = async () => {
     if (!currentUser) {
       Alert.alert("Sesion requerida", "Inicia sesion para completar tu compra.");
       return;
     }
 
     const orderItems = items.map((item) => ({
-      id: item.id,
+      id: String(item.id),
+      productId: String(item.id),
       title: item.title,
       category: item.category,
       price: item.price,
@@ -36,21 +37,28 @@ export default function CartScreen({ navigation }) {
       image: item.image,
     }));
 
-    createOrder({
-      userId: currentUser.id,
-      items: orderItems,
-      total: cartTotal,
-    });
+    try {
+      await createOrder({
+        userId: currentUser.id,
+        items: orderItems,
+        total: cartTotal,
+      });
 
-    Alert.alert("Compra realizada", "Tu pedido fue procesado correctamente.", [
-      {
-        text: "Aceptar",
-        onPress: () => {
-          clearCart();
-          navigation.navigate("OrdersTab");
+      Alert.alert("Compra realizada", "Tu pedido fue procesado correctamente.", [
+        {
+          text: "Aceptar",
+          onPress: () => {
+            clearCart();
+            navigation.navigate("OrdersTab");
+          },
         },
-      },
-    ]);
+      ]);
+    } catch (error) {
+      Alert.alert(
+        "No se pudo procesar",
+        error.message || "El pedido no pudo guardarse en la base de datos."
+      );
+    }
   };
 
   if (!items.length) {

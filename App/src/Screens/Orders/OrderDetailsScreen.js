@@ -24,8 +24,8 @@ export default function OrderDetailsScreen({ navigation, route }) {
       {
         text: "Eliminar",
         style: "destructive",
-        onPress: () => {
-          deleteOrder(orderId);
+        onPress: async () => {
+          await deleteOrder(orderId);
           navigation.goBack();
         },
       },
@@ -61,7 +61,7 @@ export default function OrderDetailsScreen({ navigation, route }) {
     <View style={styles.screen}>
       <FlatList
         data={order.items}
-        keyExtractor={(item, index) => `${item.id}-${index}`}
+        keyExtractor={(item, index) => `${item.id ?? item.productId}-${index}`}
         renderItem={renderItem}
         contentContainerStyle={styles.listContent}
         ListHeaderComponent={
