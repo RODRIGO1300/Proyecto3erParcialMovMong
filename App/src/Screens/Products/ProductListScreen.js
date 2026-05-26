@@ -6,57 +6,8 @@ import ProductCard from "../../components/ProductCard";
 import { useCart } from "../../context/CartContext";
 import { CLUB_THEME } from "../../Theme/ClubTheme";
 
-const PRODUCTS_URL = `${API_BASE_URL}/products`;
-const LOCAL_PRODUCTS = [
-  {
-    id: "local-1",
-    title: "Jersey Local Edicion Clasica",
-    price: 129,
-    description:
-      "Jersey inspirado en una temporada historica, con tela ligera y acabado premium para uso casual o deportivo.",
-    category: "coleccion local",
-    image: "https://images.unsplash.com/photo-1517466787929-bc90951d0974?auto=format&fit=crop&w=900&q=80",
-    rating: { rate: 4.8, count: 24 },
-    seller: "Tienda Universitaria",
-    isLocal: true,
-  },
-  {
-    id: "local-2",
-    title: "Sudadera Azul Premium",
-    price: 89,
-    description:
-      "Sudadera comoda con interior suave, ideal para clima fresco y para combinar con prendas deportivas.",
-    category: "coleccion local",
-    image: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=900&q=80",
-    rating: { rate: 4.6, count: 18 },
-    seller: "Campus Shop",
-    isLocal: true,
-  },
-  {
-    id: "local-3",
-    title: "Termo Deportivo Oficial",
-    price: 35,
-    description:
-      "Termo de acero inoxidable con aislamiento termico, perfecto para entrenamientos, clases o trayectos diarios.",
-    category: "accesorios",
-    image: "https://images.unsplash.com/photo-1602143407151-7111542de6e8?auto=format&fit=crop&w=900&q=80",
-    rating: { rate: 4.7, count: 31 },
-    seller: "Club Store",
-    isLocal: true,
-  },
-  {
-    id: "local-4",
-    title: "Mochila Urbana Oficial",
-    price: 75,
-    description:
-      "Mochila amplia con compartimento acolchado y diseno moderno para uso diario dentro y fuera del campus.",
-    category: "accesorios",
-    image: "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&w=900&q=80",
-    rating: { rate: 4.9, count: 12 },
-    seller: "Linea Exclusiva",
-    isLocal: true,
-  },
-];
+const BACKEND_PRODUCTS_URL = `${API_BASE_URL}/products`;
+const FAKESTORE_PRODUCTS_URL = "https://fakestoreapi.com/products";
 
 const formatPrice = (value) => {
   const numericValue = Number(value);
@@ -64,9 +15,24 @@ const formatPrice = (value) => {
   return `$${numericValue.toFixed(2)} USD`;
 };
 
-const normalizeProduct = (product) => ({
+const fetchProducts = async (url) => {
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`No se pudieron cargar productos desde ${url}.`);
+  }
+
+  const data = await response.json();
+  if (!Array.isArray(data)) {
+    throw new Error("Formato de datos erroneo.");
+  }
+
+  return data;
+};
+
+const normalizeProduct = (product, source) => ({
   ...product,
   id: product.id ?? product._id,
+  source,
   rating: {
     rate: product.rating?.rate ?? 0,
     count: product.rating?.count ?? 0,
@@ -85,20 +51,30 @@ export default function ProductListScreen({ navigation }) {
       if (showLoader) setLoading(true);
       setErrorMessage("");
 
-      const response = await fetch(PRODUCTS_URL);
-      if (!response.ok) {
-        throw new Error("No se pudieron cargar los productos.");
+      const [backendResult, fakeStoreResult] = await Promise.allSettled([
+        fetchProducts(BACKEND_PRODUCTS_URL),
+        fetchProducts(FAKESTORE_PRODUCTS_URL),
+      ]);
+
+      const backendProducts =
+        backendResult.status === "fulfilled"
+          ? backendResult.value.map((product) => normalizeProduct(product, "backend"))
+          : [];
+
+      const fakeStoreProducts =
+        fakeStoreResult.status === "fulfilled"
+          ? fakeStoreResult.value.map((product) => normalizeProduct(product, "fakestore"))
+          : [];
+
+      const loadedProducts = [...backendProducts, ...fakeStoreProducts];
+      if (!loadedProducts.length) {
+        throw new Error("No se pudieron cargar productos desde el backend ni desde Fake Store.");
       }
 
-      const data = await response.json();
-      if (!Array.isArray(data)) {
-        throw new Error("Formato de datos Erroneo.");
-      }
-
-      setProducts(data.map(normalizeProduct));
+      setProducts(loadedProducts);
     } catch (error) {
       setErrorMessage(error.message || "Error desconocido al obtener productos.");
-      setProducts(LOCAL_PRODUCTS);
+      setProducts([]);
     } finally {
       setLoading(false);
     }
